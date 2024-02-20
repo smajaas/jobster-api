@@ -7,24 +7,20 @@ const moment = require('moment');
 const getAllJobs = async (req, res) => {
   const { search, status, jobType, sort } = req.query;
 
-  // protected route
   const queryObject = {
     createdBy: req.user.userId,
   };
+
   if (search) {
     queryObject.position = { $regex: search, $options: 'i' };
   }
-
   if (status && status !== 'all') {
     queryObject.status = status;
   }
   if (jobType && jobType !== 'all') {
     queryObject.jobType = jobType;
   }
-
   let result = Job.find(queryObject);
-
-  // chain sort conditions
 
   if (sort === 'latest') {
     result = result.sort('-createdAt');
@@ -113,7 +109,7 @@ const deleteJob = async (req, res) => {
 
 const showStats = async (req, res) => {
   let stats = await Job.aggregate([
-    { $match: { createdBy: mongoose.Types.ObjectId(req.user.userId) } },
+    { $match: { createdBy: new mongoose.Types.ObjectId(req.user.userId) } },
     { $group: { _id: '$status', count: { $sum: 1 } } },
   ]);
 
@@ -130,7 +126,7 @@ const showStats = async (req, res) => {
   };
 
   let monthlyApplications = await Job.aggregate([
-    { $match: { createdBy: mongoose.Types.ObjectId(req.user.userId) } },
+    { $match: { createdBy: new mongoose.Types.ObjectId(req.user.userId) } },
     {
       $group: {
         _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
